@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Quiz Master</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #141e30, #243b55);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            width: 100%;
+            max-width: 700px;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .title {
+            text-align: center;
+            color: #243b55;
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #777;
+            margin-bottom: 25px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        .difficulty {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .question {
+            font-size: 22px;
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+
+        .option:hover {
+            background: #eef4ff;
+            border-color: #4f46e5;
+        }
+
+        .option.correct {
+            background: #d1fae5;
+            border-color: #10b981;
+        }
+
+        .option.wrong {
+            background: #fee2e2;
+            border-color: #ef4444;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .hint-btn {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .next-btn {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .restart-btn {
+            background: #10b981;
+            color: white;
+        }
+
+        .message {
+            margin-top: 18px;
+            text-align: center;
+            font-weight: bold;
+            min-height: 25px;
+        }
+
+        .result {
+            text-align: center;
+            display: none;
+        }
+
+        .result h2 {
+            font-size: 30px;
+            margin-bottom: 15px;
+            color: #243b55;
+        }
+
+        .final-score {
+            font-size: 24px;
+            margin: 15px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .quiz-container {
+                padding: 20px;
+            }
+
+            .title {
+                font-size: 26px;
+            }
+
+            .question {
+                font-size: 19px;
+            }
+
+            .stats {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="quiz-container">
+
+    <div id="quizScreen">
+
+        <h1 class="title">🤖 AI Quiz Master</h1>
+
+        <p class="subtitle">
+            Smart Quiz • Adaptive Difficulty • AI & ML
+        </p>
+
+        <div class="stats">
+            <span>🏆 Score: <span id="score">0</span></span>
+            <span>❤️ Lives: <span id="lives">3</span></span>
+        </div>
+
+        <div class="difficulty">
+            🤖 AI Difficulty:
+            <strong id="difficulty">Easy</strong>
+        </div>
+
+        <div class="question" id="question">
+            Loading question...
+        </div>
+
+        <div class="options" id="options"></div>
+
+        <div class="buttons">
+            <button class="btn hint-btn" onclick="showHint()">
+                💡 Hint
+            </button>
+
+            <button class="btn next-btn" onclick="nextQuestion()">
+                ➡️ Next
+            </button>
+        </div>
+
+        <div class="message" id="message"></div>
+
+    </div>
+
+
+    <div class="result" id="resultScreen">
+
+        <h2>🎉 Quiz Completed!</h2>
+
+        <p class="final-score">
+            Your Score:
+            <strong id="finalScore">0</strong>
+        </p>
+
+        <p id="finalMessage"></p>
+
+        <br>
+
+        <button class="btn restart-btn" onclick="restartGame()">
+            🔄 Play Again
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const questions = [
+
+    {
+        question: "What does AI stand for?",
+        options: [
+            "Automated Internet",
+            "Artificial Intelligence",
+            "Advanced Information",
+            "Automatic Intelligence"
+        ],
+        answer: 1,
+        difficulty: "Easy",
+        hint: "It is the technology that enables machines to perform tasks requiring human-like intelligence."
+    },
+
+    {
+        question: "Which of the following is a branch of Artificial Intelligence?",
+        options: [
+            "Machine Learning",
+            "HTML",
+            "CSS",
+            "Networking"
+        ],
+        answer: 0,
+        difficulty: "Easy",
+        hint: "It allows computers to learn from data."
+    },
+
+    {
+        question: "Which language is commonly used in AI and Machine Learning?",
+        options: [
+            "Python",
+            "HTML",
+            "CSS",
+            "XML"
+        ],
+        answer: 0,
+        difficulty: "Easy",
+        hint: "It is known for its simple syntax and many AI libraries."
+    },
+
+    {
+        question: "What is Machine Learning?",
+        options: [
+            "A computer game",
+            "A method where machines learn from data",
+            "A type of hardware",
+            "A web browser"
+        ],
+        answer: 1,
+        difficulty: "Easy",
+        hint: "The system improves its performance using experience or data."
+    },
+
+    {
+        question: "Which of these is an example of supervised learning?",
+        options: [
+            "Learning from labeled data",
+            "Learning without data",
+            "Deleting data",
+            "Encrypting a file"
+        ],
+        answer: 0,
+        difficulty: "Medium",
+        hint: "The training data already contains the correct answers."
+    },
+
+    {
+        question: "Which algorithm is commonly used for classification?",
+        options: [
+            "Decision Tree",
+            "HTML",
+            "FTP",
+            "DNS"
+        ],
+        answer: 0,
+        difficulty: "Medium",
+        hint: "It makes decisions using a tree-like structure."
+    },
+
+    {
+        question: "What is the main purpose of a neural network?",
+        options: [
+            "To model patterns in data",
+            "To create websites only",
+            "To store passwords",
+            "To connect printers"
+        ],
+        answer: 0,
+        difficulty: "Medium",
+        hint: "It is inspired by the way biological brains process information."
+    },
+
+    {
+        question: "What does NLP stand for?",
+        options: [
+            "Natural Language Processing",
+            "Network Learning Program",
+            "New Language Protocol",
+            "Neural Logic Processing"
+        ],
+        answer: 0,
+        difficulty: "Medium",
+        hint: "It deals with computers understanding human language."
+    },
+
+    {
+        question: "Which type of learning uses rewards and penalties?",
+        options: [
+            "Supervised Learning",
+            "Unsupervised Learning",
+            "Reinforcement Learning",
+            "Transfer Learning"
+        ],
+        answer: 2,
+        difficulty: "Hard",
+        hint: "Think about an agent learning through feedback from its environment."
+    },
+
+    {
+        question: "What is overfitting in Machine Learning?",
+        options: [
+            "The model performs well on training data but poorly on new data",
+            "The computer becomes physically hot",
+            "The dataset becomes larger",
+            "The model has no parameters"
+        ],
+        answer: 0,
+        difficulty: "Hard",
+        hint: "The model learns the training data too specifically."
+    },
+
+    {
+        question: "Which metric is commonly used to evaluate classification performance?",
+        options: [
+            "Accuracy",
+            "File size",
+            "Screen resolution",
+            "Download speed"
+        ],
+        answer: 0,
+        difficulty: "Hard",
+        hint: "It measures how many predictions are correct."
+    },
+
+    {
+        question: "What is Deep Learning?",
+        options: [
+            "Learning using multiple layers of neural networks",
+            "Learning by reading books",
+            "A type of database",
+            "A programming language"
+        ],
+        answer: 0,
+        difficulty: "Hard",
+        hint: "It is a subset of Machine Learning that often uses many neural-network layers."
+    }
+
+];
+
+
+let score = 0;
+let lives = 3;
+let currentQuestion = null;
+let answered = false;
+
+let difficultyLevels = ["Easy", "Medium", "Hard"];
+let currentDifficulty = "Easy";
+
+
+function getQuestionsByDifficulty(level) {
+
+    return questions.filter(
+        question => question.difficulty === level
+    );
+
+}
+
+
+function loadQuestion() {
+
+    answered = false;
+
+    let availableQuestions =
+        getQuestionsByDifficulty(currentDifficulty);
+
+    if (availableQuestions.length === 0) {
+        availableQuestions = questions;
+    }
+
+    currentQuestion =
+        availableQuestions[
+            Math.floor(Math.random() * availableQuestions.length)
+        ];
+
+    document.getElementById("question").textContent =
+        currentQuestion.question;
+
+    document.getElementById("difficulty").textContent =
+        currentQuestion.difficulty;
+
+    document.getElementById("message").textContent = "";
+
+    const optionsContainer =
+        document.getElementById("options");
+
+    optionsContainer.innerHTML = "";
+
+    currentQuestion.options.forEach((option, index) => {
+
+        const button = document.createElement("button");
+
+        button.className = "option";
+
+        button.textContent = option;
+
+        button.onclick = () =>
+            checkAnswer(index, button);
+
+        optionsContainer.appendChild(button);
+
+    });
+
+}
+
+
+function checkAnswer(selectedIndex, selectedButton) {
+
+    if (answered) {
+        return;
+    }
+
+    answered = true;
+
+    const allOptions =
+        document.querySelectorAll(".option");
+
+    if (selectedIndex === currentQuestion.answer) {
+
+        selectedButton.classList.add("correct");
+
+        score += 10;
+
+        document.getElementById("message").textContent =
+            "✅ Correct! Great job!";
+
+        increaseDifficulty();
+
+    } else {
+
+        selectedButton.classList.add("wrong");
+
+        allOptions[currentQuestion.answer]
+            .classList.add("correct");
+
+        lives--;
+
+        document.getElementById("message").textContent =
+            "❌ Incorrect! The correct answer is highlighted.";
+
+        decreaseDifficulty();
+
+        if (lives <= 0) {
+            setTimeout(endGame, 800);
+        }
+
+    }
+
+    document.getElementById("score").textContent = score;
+
+    document.getElementById("lives").textContent = lives;
+
+}
+
+
+function increaseDifficulty() {
+
+    let index =
+        difficultyLevels.indexOf(currentDifficulty);
+
+    if (index < difficultyLevels.length - 1) {
+
+        currentDifficulty =
+            difficultyLevels[index + 1];
+
+    }
+
+}
+
+
+function decreaseDifficulty() {
+
+    let index =
+        difficultyLevels.indexOf(currentDifficulty);
+
+    if (index > 0) {
+
+        currentDifficulty =
+            difficultyLevels[index - 1];
+
+    }
+
+}
+
+
+function nextQuestion() {
+
+    if (!answered) {
+
+        document.getElementById("message").textContent =
+            "⚠️ Please answer the question first.";
+
+        return;
+    }
+
+    loadQuestion();
+
+}
+
+
+function showHint() {
+
+    if (!currentQuestion) {
+        return;
+    }
+
+    document.getElementById("message").textContent =
+        "💡 Hint: " + currentQuestion.hint;
+
+}
+
+
+function endGame() {
+
+    document.getElementById("quizScreen")
+        .style.display = "none";
+
+    document.getElementById("resultScreen")
+        .style.display = "block";
+
+    document.getElementById("finalScore")
+        .textContent = score;
+
+    let message = "";
+
+    if (score >= 90) {
+
+        message =
+            "🏆 Excellent! You are an AI Master!";
+
+    } else if (score >= 50) {
+
+        message =
+            "👏 Great work! Keep learning AI!";
+
+    } else {
+
+        message =
+            "📚 Keep practicing! You will improve!";
+
+    }
+
+    document.getElementById("finalMessage")
+        .textContent = message;
+
+}
+
+
+function restartGame() {
+
+    score = 0;
+
+    lives = 3;
+
+    currentDifficulty = "Easy";
+
+    document.getElementById("score")
+        .textContent = score;
+
+    document.getElementById("lives")
+        .textContent = lives;
+
+    document.getElementById("quizScreen")
+        .style.display = "block";
+
+    document.getElementById("resultScreen")
+        .style.display = "none";
+
+    loadQuestion();
+
+}
+
+
+loadQuestion();
+
+</script>
+
+</body>
+</html>
